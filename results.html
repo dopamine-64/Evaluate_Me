@@ -59,7 +59,7 @@
       window.location.href = 'index.html';
     }
 
-    const evaluations = JSON.parse(localStorage.getItem('evaluations')) || [];
+    const evaluations = JSON.parse(localStorage.getItem(`evaluations_${currentUser}`)) || [];
 
     // Separate evaluations
     const debapriyoEvals = evaluations.filter(e => e.user === 'Debapriyo');
