@@ -124,27 +124,41 @@
       selectedMood = el.innerText;
     }
 
-    function saveNote() {
+    async function saveNote() {
       const noteText = document.getElementById('noteContent').value.trim();
       if (!noteText) {
         alert('Please write something!');
         return;
       }
 
-      const notes = JSON.parse(localStorage.getItem('notes')) || [];
+      const fullNote = (selectedMood || "📝") + " " + noteText;
 
-      const newNote = {
+      const payload = {
         user: currentUser,
-        content: noteText,
-        mood: selectedMood || "📝",
-        date: new Date().toLocaleString()
+        date: new Date().toLocaleString(),
+        note: fullNote
       };
 
-      notes.push(newNote);
-      localStorage.setItem('notes', JSON.stringify(notes));
+      try {
+        const res = await fetch("https://script.google.com/macros/s/AKfycbwxo6a7LGDSOjyVrNhWbckIA35NOrf0Jdk6oJJaD_2COrTQi7z_YzeL7_NGUwOs4Exv/exec?type=note", {
+          method: "POST",
+          body: JSON.stringify(payload),
+          headers: {
+            "Content-Type": "application/json"
+          }
+        });
 
-      alert('Note saved!');
-      window.location.href = 'dashboard.html';
+        const text = await res.text();
+        if (text === "Success") {
+          alert("Note saved!");
+          window.location.href = "dashboard.html";
+        } else {
+          alert("Failed to save note. Try again.");
+        }
+      } catch (error) {
+        console.error("Error saving note:", error);
+        alert("Something went wrong.");
+      }
     }
   </script>
 
