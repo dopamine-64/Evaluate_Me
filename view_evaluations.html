@@ -37,7 +37,6 @@
       font-weight: bold;
       color: #ffd700;
     }
-
     .top-left-button {
       position: absolute;
       top: 30px;
@@ -51,7 +50,6 @@
       transition: background-color 0.3s ease;
       z-index: 1000;
     }
-
     .top-left-button:hover {
       background-color: #e0a800;
     }
@@ -63,125 +61,136 @@
   <div id="evaluationsContainer"></div>
 
   <script>
-    const currentUser = localStorage.getItem('currentUser') || 'guest';
-    const evaluations = JSON.parse(localStorage.getItem(`evaluations_${currentUser}`)) || [];
+    const GOOGLE_SHEET_WEBAPP_URL = 'https://script.google.com/macros/s/PASTE_YOUR_DEPLOYED_URL_HERE/exec';
 
     const openEndedQuestions = [
-       'Recent best nicknames from your partner?',
-       'What do you want to improve in your partner?',
-       'Recent embarrassing moment with your partner?',
-       "How useful your partner is when you're hungry or tired (rate from 1 to 10 )?",
-       "What's the recent best orgasm of yours (explicit details)?",
-       'What’s something new you want to experience together?',
-       'What’s something your partner did this few weeks that made you smile (that your partner didn’t notice)?',
-       'What’s your favorite way for us to be physically close that isn’t sex?',
-       'What’s your idea of a perfect romantic night together — from start to finish?',
-       "What's the way you love to tease your partner when you two are in bed?",
-       'Was there anything in the past week your partner did or didn’t do that made you feel distant or unseen?',
-       'What’s your recent favorite memory of an intimate moment we shared (be unfiltered hehe)?',
-       'In the past few days, did we miss an opportunity to grow closer? What could we do differently next time?',
-       'What was your recent sexual fantasy when you guys were in public?', 
-       'Say something dirty about your partner.'
+      'Recent best nicknames from your partner?',
+      'What do you want to improve in your partner?',
+      'Recent embarrassing moment with your partner?',
+      "How useful your partner is when you're hungry or tired (rate from 1 to 10 )?",
+      "What's the recent best orgasm of yours (explicit details)?",
+      'What’s something new you want to experience together?',
+      'What’s something your partner did this few weeks that made you smile (that your partner didn’t notice)?',
+      'What’s your favorite way for us to be physically close that isn’t sex?',
+      'What’s your idea of a perfect romantic night together — from start to finish?',
+      "What's the way you love to tease your partner when you two are in bed?",
+      'Was there anything in the past week your partner did or didn’t do that made you feel distant or unseen?',
+      'What’s your recent favorite memory of an intimate moment we shared (be unfiltered hehe)?',
+      'In the past few days, did we miss an opportunity to grow closer? What could we do differently next time?',
+      'What was your recent sexual fantasy when you guys were in public?', 
+      'Say something dirty about your partner.'
     ];
 
-    const container = document.getElementById('evaluationsContainer');
+    async function loadEvaluations() {
+      try {
+        const res = await fetch("https://script.google.com/macros/s/AKfycbwxo6a7LGDSOjyVrNhWbckIA35NOrf0Jdk6oJJaD_2COrTQi7z_YzeL7_NGUwOs4Exv/exec");
+        const evaluations = await res.json();
 
-    if (evaluations.length === 0) {
-      const msg = document.createElement('p');
-      msg.textContent = "No evaluations found.";
-      msg.style.textAlign = "center";
-      msg.style.fontSize = "1.2rem";
-      msg.style.marginTop = "2rem";
-      msg.style.color = "white";
-      container.appendChild(msg);
-    }
+        const container = document.getElementById('evaluationsContainer');
 
-    evaluations.forEach((evalData, index) => {
-      const wrapper = document.createElement('div');
-      wrapper.className = 'evaluation';
+        if (evaluations.length === 0) {
+          const msg = document.createElement('p');
+          msg.textContent = "No evaluations found.";
+          msg.style.textAlign = "center";
+          msg.style.fontSize = "1.2rem";
+          msg.style.marginTop = "2rem";
+          msg.style.color = "white";
+          container.appendChild(msg);
+          return;
+        }
 
-      // Date
-      const date = document.createElement('p');
-      date.className = 'date';
-      date.textContent = `Evaluation Date: ${evalData.date}`;
-      wrapper.appendChild(date);
+        evaluations.forEach((evalData, index) => {
+          const wrapper = document.createElement('div');
+          wrapper.className = 'evaluation';
 
-      // Chart canvas
-      const chartCanvas = document.createElement('canvas');
-      chartCanvas.id = `chart-${index}`;
-      chartCanvas.width = 600;
-      chartCanvas.height = 400;
-      wrapper.appendChild(chartCanvas);
+          // Date
+          const date = document.createElement('p');
+          date.className = 'date';
+          date.textContent = `Evaluation Date: ${evalData.date}`;
+          wrapper.appendChild(date);
 
-      // Chart data
-      const scaled = evalData.scaled;
-      const labels = [
-        'Trust',
-        'Communication',
-        'Emotional Connection',
-        'Intimacy',
-        'Funny & Dorky'
-      ];
-      const values = [
-        scaled.trust,
-        scaled.communication,
-        scaled.connection,
-        scaled.intimacy,
-        scaled.funny
-      ];
+          // Chart canvas
+          const chartCanvas = document.createElement('canvas');
+          chartCanvas.id = `chart-${index}`;
+          chartCanvas.width = 600;
+          chartCanvas.height = 400;
+          wrapper.appendChild(chartCanvas);
 
-      // Draw chart
-      setTimeout(() => {
-        new Chart(chartCanvas, {
-          type: 'radar',
-          data: {
-            labels,
-            datasets: [{
-              label: 'Relationship Evaluation',
-              data: values,
-              backgroundColor: 'rgba(255, 206, 86, 0.3)',
-              borderColor: 'rgba(255, 206, 86, 1)',
-              pointBackgroundColor: 'white',
-              borderWidth: 2
-            }]
-          },
-          options: {
-            scales: {
-              r: {
-                min: 0,
-                max: 10,
-                ticks: { stepSize: 1 },
-                pointLabels: {
-                  color: 'white',
-                  font: { size: 14 }
+          // Chart data
+          const scaled = evalData.scaled || {};
+          const labels = ['Trust', 'Communication', 'Emotional Connection', 'Intimacy', 'Funny & Dorky'];
+          const values = [
+            scaled.trust || 0,
+            scaled.communication || 0,
+            scaled.connection || 0,
+            scaled.intimacy || 0,
+            scaled.funny || 0
+          ];
+
+          // Draw chart
+          setTimeout(() => {
+            new Chart(chartCanvas, {
+              type: 'radar',
+              data: {
+                labels,
+                datasets: [{
+                  label: 'Relationship Evaluation',
+                  data: values,
+                  backgroundColor: 'rgba(255, 206, 86, 0.3)',
+                  borderColor: 'rgba(255, 206, 86, 1)',
+                  pointBackgroundColor: 'white',
+                  borderWidth: 2
+                }]
+              },
+              options: {
+                scales: {
+                  r: {
+                    min: 0,
+                    max: 10,
+                    ticks: { stepSize: 1 },
+                    pointLabels: {
+                      color: 'white',
+                      font: { size: 14 }
+                    },
+                    grid: {
+                      color: 'rgba(255,255,255,0.2)'
+                    }
+                  }
                 },
-                grid: {
-                  color: 'rgba(255,255,255,0.2)'
+                plugins: {
+                  legend: { labels: { color: 'white' } }
                 }
               }
-            },
-            plugins: {
-              legend: { labels: { color: 'white' } }
-            }
-          }
+            });
+          }, 100);
+
+          // Open-ended answers
+          const openEnded = document.createElement('div');
+          openEnded.className = 'open-ended';
+
+          openEndedQuestions.forEach((question, i) => {
+            const qNum = i + 1;
+            const answer = evalData.openEnded[`q${qNum}`] || "N/A";
+            const p = document.createElement('p');
+            p.innerHTML = `<strong>Q${qNum}: ${question}</strong><br>${answer}`;
+            openEnded.appendChild(p);
+          });
+
+          wrapper.appendChild(openEnded);
+          container.appendChild(wrapper);
         });
-      }, 100);
 
-      // Open-ended questions + answers
-      const openEnded = document.createElement('div');
-      openEnded.className = 'open-ended';
+      } catch (err) {
+        console.error('Error fetching data:', err);
+        const msg = document.createElement('p');
+        msg.textContent = "Error loading evaluations. Please try again later.";
+        msg.style.textAlign = "center";
+        msg.style.color = "red";
+        document.getElementById('evaluationsContainer').appendChild(msg);
+      }
+    }
 
-      openEndedQuestions.forEach((question, i) => {
-        const qNum = i + 1;
-        const answer = evalData.openEnded[`q${qNum}`] || "N/A";
-        const p = document.createElement('p');
-        p.innerHTML = `<strong>Q${qNum}: ${question}</strong><br>${answer}`;
-        openEnded.appendChild(p);
-      });
-
-      wrapper.appendChild(openEnded);
-      container.appendChild(wrapper);
-    });
+    window.onload = loadEvaluations;
   </script>
 </body>
 </html>
