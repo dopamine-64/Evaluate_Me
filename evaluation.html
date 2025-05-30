@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Relationship Evaluation</title>
+  <style>
+    body {
+      background: linear-gradient(to right, #6a4891, #c42c8a);
+      color: white;
+      font-family: 'Segoe UI', sans-serif;
+      margin: 10;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      width: 90%;
+      max-width: 750px;
+      background-color: rgba(255, 255, 255, 0.05);
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 2rem;
+      font-size: 2rem;
+    }
+
+    .question-box {
+      background-color: rgba(255, 255, 255, 0.1);
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      border-radius: 8px;
+    }
+
+    .question-box label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+
+    .question-box input[type="number"] {
+      width: 97%;
+      padding: 0.5rem;
+      border-radius: 5px;
+      border: none;
+      font-size: 1rem;
+    }
+
+    .question-box textarea {
+      width: 97%;
+      padding: 0.5rem;
+      border-radius: 5px;
+      border: none;
+      font-size: 1rem;
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    button {
+      background-color: #28b42d;
+      color: white;
+      padding: 0.75rem 2rem;
+      border: none;
+      border-radius: 5px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      display: block;
+      margin: 2rem auto 0;
+      transition: background 0.3s ease;
+      
+    }
+    .back {
+      margin-top: 2rem;
+      padding: 0.7rem 2rem;
+      border: none;
+      border-radius: 10px;
+      background-color: #fff176;
+      color: #333;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .back:hover {
+      background-color: #ffca28;
+    }
+    button:hover {
+      background-color: #2fa033;
+    }
+
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Relationship Evaluation</h1>
+    
+
+    <form id="evaluationForm">
+
+      
+      <h3>Scaled Questions</h3>
+      <div class="question-box">
+        <label>1. How much do you trust your partner? (1-10)</label>
+        <input type="number" name="trust" min="1" max="10" required />
+      </div>
+      <div class="question-box">
+        <label>2. How satisfied are you with your communication in the relationship? (1-10)</label>
+        <input type="number" name="communication" min="1" max="10" required />
+      </div>
+      <div class="question-box">
+        <label>3. How emotionally connected do you feel with your partner? (1-10)</label>
+        <input type="number" name="connection" min="1" max="10" required />
+      </div>
+      <div class="question-box">
+        <label>4. How do you feel about our level of intimacy? (1-10)</label>
+        <input type="number" name="intimacy" min="1" max="10" required />
+      </div>
+      <div class="question-box">
+        <label>5. How funny and dorky are we? (1-10)</label>
+        <input type="number" name="funny" min="1" max="10" required />
+      </div>
+
+      
+      <h3>⠀</h3>
+      <h3>Open-Ended Questions</h3>
+      <div class="question-box"><label>1. Recent best nicknames from your partner?</label><textarea name="q1"></textarea></div>
+      <div class="question-box"><label>2. What do you want to improve in your partner?</label><textarea name="q2"></textarea></div>
+      <div class="question-box"><label>3. Recent embarrassing moment with your partner?</label><textarea name="q3"></textarea></div>
+      <div class="question-box"><label>4. How useful your partner is when you're hungry or tired (rate from 1 to 10)?</label><textarea name="q4"></textarea></div>
+      <div class="question-box"><label>5. What's the recent best orgasm of yours (explicit details)?</label><textarea name="q5"></textarea></div>
+      <div class="question-box"><label>6. What’s something new you want to experience together?</label><textarea name="q6"></textarea></div>
+      <div class="question-box"><label>7. What’s something your partner did this few weeks that made you smile (that your partner didn’t notice)?</label><textarea name="q7"></textarea></div>
+      <div class="question-box"><label>8. What’s your favorite way for us to be physically close that isn’t sex?</label><textarea name="q8"></textarea></div>
+      <div class="question-box"><label>9. What’s your idea of a perfect romantic night together — from start to finish?</label><textarea name="q9"></textarea></div>
+      <div class="question-box"><label>10. What's the way you love to tease your partner when you two are in bed?</label><textarea name="q10"></textarea></div>
+      <div class="question-box"><label>11. Was there anything in the past week your partner did or didn’t do that made you feel distant or unseen?</label><textarea name="q11"></textarea></div>
+      <div class="question-box"><label>12. What’s your recent favorite memory of an intimate moment we shared (be unfiltered hehe)?</label><textarea name="q12"></textarea></div>
+      <div class="question-box"><label>13. In the past few days, did we miss an opportunity to grow closer? What could we do differently next time?</label><textarea name="q13"></textarea></div>
+      <div class="question-box"><label>14. What was your recent sexual fantasy when you guys were in public?</label><textarea name="q14"></textarea></div>
+      <div class="question-box"><label>15. Say something dirty about your partner.</label><textarea name="q15"></textarea></div>
+
+      <button type="submit">Submit Evaluation</button>
+      <button class="back" onclick="window.location.href='dashboard.html'">Back to Dashboard</button>
+      
+    </form>
+  </div>
+
+  <script>
+    document.getElementById('evaluationForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const formData = new FormData(this);
+      const data = {
+        date: new Date().toLocaleDateString(),
+        scaled: {
+          trust: parseInt(formData.get('trust')),
+          communication: parseInt(formData.get('communication')),
+          connection: parseInt(formData.get('connection')),
+          intimacy: parseInt(formData.get('intimacy')),
+          funny: parseInt(formData.get('funny')),
+        },
+        openEnded: {},
+      };
+
+      for (let i = 1; i <= 15; i++) {
+        data.openEnded[`q${i}`] = formData.get(`q${i}`) || "";
+      }
+
+      const currentUser = localStorage.getItem('currentUser') || "guest";
+      const key = `evaluations_${currentUser}`;
+      const stored = JSON.parse(localStorage.getItem(key)) || [];
+      stored.push(data);
+      localStorage.setItem(key, JSON.stringify(stored));
+
+      alert("Evaluation submitted successfully!");
+      this.reset();
+    });
+  </script>
+</body>
+</html>

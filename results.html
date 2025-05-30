@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Relationship Results</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #614385, #516395);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+    }
+
+    h2 {
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    canvas {
+      max-width: 800px;
+      width: 100%;
+      background: #fff;
+      border-radius: 12px;
+      padding: 1rem;
+    }
+
+    .back {
+      margin-top: 2rem;
+      padding: 0.8rem 2rem;
+      border: none;
+      border-radius: 10px;
+      background-color: #ffc107;
+      color: #333;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .back:hover {
+      background-color: #e0a800;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Relationship Evaluation Chart</h2>
+  <canvas id="relationshipChart"></canvas>
+
+  <button class="back" onclick="window.location.href='dashboard.html'">Back to Dashboard</button>
+
+  <script>
+    const currentUser = localStorage.getItem('currentUser');
+    if (!currentUser) {
+      window.location.href = 'index.html';
+    }
+
+    const evaluations = JSON.parse(localStorage.getItem('evaluations')) || [];
+
+    // Separate evaluations
+    const debapriyoEvals = evaluations.filter(e => e.user === 'Debapriyo');
+    const mithilaEvals = evaluations.filter(e => e.user === 'Mithila');
+
+    // Helper to extract values
+    function extractData(evals, key) {
+      return evals.map(e => e.scores[key]);
+    }
+
+    const labels = [...new Set([...debapriyoEvals, ...mithilaEvals].map(e => e.date))].sort();
+
+    const data = {
+      labels,
+      datasets: [
+        {
+          label: 'Debapriyo - Communication',
+          data: extractData(debapriyoEvals, 'communication'),
+          borderColor: '#FFD700',
+          backgroundColor: 'transparent',
+          tension: 0.4
+        },
+        {
+          label: 'Mithila - Communication',
+          data: extractData(mithilaEvals, 'communication'),
+          borderColor: '#00FFFF',
+          backgroundColor: 'transparent',
+          tension: 0.4
+        },
+        {
+          label: 'Debapriyo - Support',
+          data: extractData(debapriyoEvals, 'support'),
+          borderColor: '#FFA500',
+          backgroundColor: 'transparent',
+          borderDash: [5, 5],
+          tension: 0.4
+        },
+        {
+          label: 'Mithila - Support',
+          data: extractData(mithilaEvals, 'support'),
+          borderColor: '#00FF00',
+          backgroundColor: 'transparent',
+          borderDash: [5, 5],
+          tension: 0.4
+        },
+        {
+          label: 'Debapriyo - Trust',
+          data: extractData(debapriyoEvals, 'trust'),
+          borderColor: '#FF69B4',
+          backgroundColor: 'transparent',
+          borderDash: [10, 5],
+          tension: 0.4
+        },
+        {
+          label: 'Mithila - Trust',
+          data: extractData(mithilaEvals, 'trust'),
+          borderColor: '#1E90FF',
+          backgroundColor: 'transparent',
+          borderDash: [10, 5],
+          tension: 0.4
+        },
+      ]
+    };
+
+    const config = {
+      type: 'line',
+      data: data,
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              color: '#fff'
+            }
+          },
+          title: {
+            display: true,
+            text: 'Debapriyo vs Mithila: Relationship Evaluation Over Time',
+            color: '#fff'
+          }
+        },
+        scales: {
+          x: {
+            ticks: { color: '#fff' }
+          },
+          y: {
+            suggestedMin: 0,
+            suggestedMax: 10,
+            ticks: { color: '#fff' }
+          }
+        }
+      }
+    };
+
+    new Chart(document.getElementById('relationshipChart'), config);
+  </script>
+</body>
+</html>

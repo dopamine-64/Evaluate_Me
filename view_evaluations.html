@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>View Evaluations</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+      color: white;
+      font-family: 'Segoe UI', sans-serif;
+      padding: 2rem;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    .evaluation {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 1rem;
+      margin-bottom: 2rem;
+      border-radius: 10px;
+    }
+    .chart-container {
+      width: 100%;
+      max-width: 600px;
+      margin: 1rem auto;
+    }
+    .open-ended {
+      margin-top: 1rem;
+    }
+    .open-ended p {
+      margin: 0.4rem 0;
+    }
+    .date {
+      font-weight: bold;
+      color: #ffd700;
+    }
+
+    .top-left-button {
+      position: absolute;
+      top: 30px;
+      left: 30px;
+      background-color: #ffc107;
+      color: #333;
+      padding: 10px 16px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: bold;
+      transition: background-color 0.3s ease;
+      z-index: 1000;
+    }
+
+    .top-left-button:hover {
+      background-color: #e0a800;
+    }
+  </style>
+</head>
+<body>
+  <a href="dashboard.html" class="top-left-button">Back to Dashboard</a>
+  <h1>Evaluation Results</h1>
+  <div id="evaluationsContainer"></div>
+
+  <script>
+    const currentUser = localStorage.getItem('currentUser') || 'guest';
+    const evaluations = JSON.parse(localStorage.getItem(`evaluations_${currentUser}`)) || [];
+
+    const openEndedQuestions = [
+       'Recent best nicknames from your partner?',
+       'What do you want to improve in your partner?',
+       'Recent embarrassing moment with your partner?',
+       "How useful your partner is when you're hungry or tired (rate from 1 to 10 )?",
+       "What's the recent best orgasm of yours (explicit details)?",
+       'What’s something new you want to experience together?',
+       'What’s something your partner did this few weeks that made you smile (that your partner didn’t notice)?',
+       'What’s your favorite way for us to be physically close that isn’t sex?',
+       'What’s your idea of a perfect romantic night together — from start to finish?',
+       "What's the way you love to tease your partner when you two are in bed?",
+       'Was there anything in the past week your partner did or didn’t do that made you feel distant or unseen?',
+       'What’s your recent favorite memory of an intimate moment we shared (be unfiltered hehe)?',
+       'In the past few days, did we miss an opportunity to grow closer? What could we do differently next time?',
+       'What was your recent sexual fantasy when you guys were in public?', 
+       'Say something dirty about your partner.'
+    ];
+
+    const container = document.getElementById('evaluationsContainer');
+
+    if (evaluations.length === 0) {
+      const msg = document.createElement('p');
+      msg.textContent = "No evaluations found.";
+      msg.style.textAlign = "center";
+      msg.style.fontSize = "1.2rem";
+      msg.style.marginTop = "2rem";
+      msg.style.color = "white";
+      container.appendChild(msg);
+    }
+
+    evaluations.forEach((evalData, index) => {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'evaluation';
+
+      // Date
+      const date = document.createElement('p');
+      date.className = 'date';
+      date.textContent = `Evaluation Date: ${evalData.date}`;
+      wrapper.appendChild(date);
+
+      // Chart canvas
+      const chartCanvas = document.createElement('canvas');
+      chartCanvas.id = `chart-${index}`;
+      chartCanvas.width = 600;
+      chartCanvas.height = 400;
+      wrapper.appendChild(chartCanvas);
+
+      // Chart data
+      const scaled = evalData.scaled;
+      const labels = [
+        'Trust',
+        'Communication',
+        'Emotional Connection',
+        'Intimacy',
+        'Funny & Dorky'
+      ];
+      const values = [
+        scaled.trust,
+        scaled.communication,
+        scaled.connection,
+        scaled.intimacy,
+        scaled.funny
+      ];
+
+      // Draw chart
+      setTimeout(() => {
+        new Chart(chartCanvas, {
+          type: 'radar',
+          data: {
+            labels,
+            datasets: [{
+              label: 'Relationship Evaluation',
+              data: values,
+              backgroundColor: 'rgba(255, 206, 86, 0.3)',
+              borderColor: 'rgba(255, 206, 86, 1)',
+              pointBackgroundColor: 'white',
+              borderWidth: 2
+            }]
+          },
+          options: {
+            scales: {
+              r: {
+                min: 0,
+                max: 10,
+                ticks: { stepSize: 1 },
+                pointLabels: {
+                  color: 'white',
+                  font: { size: 14 }
+                },
+                grid: {
+                  color: 'rgba(255,255,255,0.2)'
+                }
+              }
+            },
+            plugins: {
+              legend: { labels: { color: 'white' } }
+            }
+          }
+        });
+      }, 100);
+
+      // Open-ended questions + answers
+      const openEnded = document.createElement('div');
+      openEnded.className = 'open-ended';
+
+      openEndedQuestions.forEach((question, i) => {
+        const qNum = i + 1;
+        const answer = evalData.openEnded[`q${qNum}`] || "N/A";
+        const p = document.createElement('p');
+        p.innerHTML = `<strong>Q${qNum}: ${question}</strong><br>${answer}`;
+        openEnded.appendChild(p);
+      });
+
+      wrapper.appendChild(openEnded);
+      container.appendChild(wrapper);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>View Notes</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #f14c67, #db6295);
+      color: #fff;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h2 {
+      margin-bottom: 1rem;
+    }
+
+    .note {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 1rem 1.5rem;
+      max-width: 600px;
+      width: 90%;
+      margin-bottom: 1.2rem;
+      backdrop-filter: blur(5px);
+    }
+
+    .note-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+      font-weight: bold;
+      color: #ffd;
+    }
+
+    .note p {
+      margin: 0;
+      font-size: 1rem;
+      white-space: pre-wrap;
+    }
+
+    .back {
+      margin-top: 2rem;
+      padding: 0.7rem 2rem;
+      border: none;
+      border-radius: 10px;
+      background-color: #fff176;
+      color: #333;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .back:hover {
+      background-color: #ffca28;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Shared Notes</h2>
+  <div id="notesContainer"></div>
+
+  <button class="back" onclick="window.location.href='dashboard.html'">Back to Dashboard</button>
+
+  <script>
+    const currentUser = localStorage.getItem('currentUser');
+    if (!currentUser) {
+      window.location.href = 'index.html';
+    }
+
+    const notes = JSON.parse(localStorage.getItem('notes')) || [];
+
+    const notesContainer = document.getElementById('notesContainer');
+
+    if (notes.length === 0) {
+      notesContainer.innerHTML = "<p>No notes yet. Be the first to write one!</p>";
+    } else {
+      // Newest first
+      notes.reverse().forEach(note => {
+        const div = document.createElement('div');
+        div.className = 'note';
+        div.innerHTML = `
+          <div class="note-header">
+            <span>${note.user}</span>
+            <span>${note.date}</span>
+          </div>
+          <p>${note.mood || '📝'} ${note.content}</p>
+        `;
+        notesContainer.appendChild(div);
+      });
+    }
+  </script>
+
+</body>
+</html>
