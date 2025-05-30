@@ -5,56 +5,73 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Delete My Stuff</title>
   <style>
-    body{
-      margin:0;
-      padding:0;
-      font-family:'Segoe UI',sans-serif;
-      background:linear-gradient(to right, #0f2725, #20433e, #2c645b);
-      color:#fff;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      min-height:100vh;
-      padding:2rem;
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #0f2725, #20433e, #2c645b);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 2rem;
     }
-    h1{margin-bottom:1rem;text-align:center;color:#ffd700}
-    .section{
-      width:100%;
-      max-width:800px;
-      background:rgba(255,255,255,.06);
-      padding:1.5rem;
-      border-radius:12px;
-      margin-bottom:2rem;
-      box-shadow:0 0 15px rgba(0,0,0,.4);
+    h1 {
+      margin-bottom: 1rem;
+      text-align: center;
+      color: #ffd700;
     }
-    .item{
-      background:rgba(255,255,255,.1);
-      padding:1rem;
-      border-radius:8px;
-      margin-bottom:1rem;
-      position:relative;
+    .section {
+      width: 100%;
+      max-width: 800px;
+      background: rgba(255,255,255,0.06);
+      padding: 1.5rem;
+      border-radius: 12px;
+      margin-bottom: 2rem;
+      box-shadow: 0 0 15px rgba(0,0,0,0.4);
     }
-    .item h3{margin:0 0 .5rem;font-size:1rem;color:#ffd700}
-    .item p{margin:.3rem 0;white-space:pre-wrap}
-    .delete-btn{
-      position:absolute;
-      top:13px;right:13px;
-      background:#ff5252;
-      border:none;
-      color:#fff;
-      padding:.3rem .6rem;
-      border-radius:4px;
-      cursor:pointer;
-      font-size:1rem;
+    .item {
+      background: rgba(255,255,255,0.1);
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      position: relative;
+    }
+    .item h3 {
+      margin: 0 0 .5rem;
+      font-size: 1rem;
+      color: #ffd700;
+    }
+    .item p {
+      margin: .3rem 0;
+      white-space: pre-wrap;
+    }
+    .delete-btn {
+      position: absolute;
+      top: 13px;
+      right: 13px;
+      background: #ff5252;
+      border: none;
+      color: #fff;
+      padding: .3rem .6rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
       font-weight: bold;
     }
-    .delete-btn:hover{background:#ff1744}
-    .back{
-      margin-top:1rem;
-      padding:.7rem 2rem;
-      background:#ffd700;color:#000;
-      border:none;border-radius:8px;
-      font-weight:bold;cursor:pointer;
+    .delete-btn:hover {
+      background: #ff1744;
+    }
+    .back {
+      margin-top: 1rem;
+      padding: .7rem 2rem;
+      background: #ffd700;
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -64,88 +81,104 @@
 
   <div id="evalSection" class="section">
     <h2>My Evaluations</h2>
-    <div id="evalList"></div>
+    <div id="evalList">Loading...</div>
   </div>
 
   <div id="noteSection" class="section">
     <h2>My Notes</h2>
-    <div id="noteList"></div>
+    <div id="noteList">Loading...</div>
   </div>
 
   <button class="back" onclick="window.location.href='dashboard.html'">Back to Dashboard</button>
 
 <script>
-(function(){
+const scriptURL = "https://script.google.com/macros/s/AKfycbwxo6a7LGDSOjyVrNhWbckIA35NOrf0Jdk6oJJaD_2COrTQi7z_YzeL7_NGUwOs4Exv/exec";
+
+(async function() {
   const currentUser = localStorage.getItem('currentUser');
-  if(!currentUser){ window.location.href='index.html'; return; }
+  if (!currentUser) {
+    window.location.href = 'index.html';
+    return;
+  }
 
-  /** ----------  EVALUATIONS  ---------- **/
-  const evalKey = `evaluations_${currentUser}`;
-  let evaluations = JSON.parse(localStorage.getItem(evalKey)) || [];
   const evalList = document.getElementById('evalList');
+  const noteList = document.getElementById('noteList');
 
-  function renderEvaluations(){
-    evalList.innerHTML = '';
-    if(evaluations.length===0){
-      evalList.innerHTML = '<p>No evaluations to delete.</p>';
-      return;
-    }
-    evaluations.forEach((ev,i)=>{
-      const div=document.createElement('div');
-      div.className='item';
+  // Load Evaluations
+  const evalRes = await fetch(scriptURL + '?type=evaluation');
+  const allEvaluations = await evalRes.json();
+  const myEvals = allEvaluations.filter(ev => ev.user === currentUser);
+  evalList.innerHTML = '';
+
+  if (myEvals.length === 0) {
+    evalList.innerHTML = '<p>No evaluations to delete.</p>';
+  } else {
+    myEvals.reverse().forEach(ev => {
+      const div = document.createElement('div');
+      div.className = 'item';
       div.innerHTML = `
         <h3>Date: ${ev.date}</h3>
-        <p><strong>Trust:</strong> ${ev.scaled.trust}  |
-           <strong>Comm:</strong> ${ev.scaled.communication}  |
-           <strong>Conn:</strong> ${ev.scaled.connection}  |
-           <strong>Intimacy:</strong> ${ev.scaled.intimacy}  |
-           <strong>Funny:</strong> ${ev.scaled.funny}</p>
+        <p><strong>Trust:</strong> ${ev.trust} |
+           <strong>Comm:</strong> ${ev.communication} |
+           <strong>Conn:</strong> ${ev.connection} |
+           <strong>Intimacy:</strong> ${ev.intimacy} |
+           <strong>Funny:</strong> ${ev.funny}</p>
         <button class="delete-btn">Delete</button>
       `;
-      div.querySelector('.delete-btn').onclick = ()=> {
-        if(confirm('Delete this evaluation?')){
-          evaluations.splice(i,1);
-          localStorage.setItem(evalKey,JSON.stringify(evaluations));
-          renderEvaluations();
+      div.querySelector('.delete-btn').onclick = async () => {
+        if (confirm('Delete this evaluation?')) {
+          await fetch(scriptURL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'delete',
+              type: 'evaluation',
+              user: currentUser,
+              date: ev.date
+            })
+          });
+          div.remove();
         }
       };
       evalList.appendChild(div);
     });
   }
-  renderEvaluations();
 
-  /** ----------  NOTES  ---------- **/
-  let notes = JSON.parse(localStorage.getItem('notes')) || [];
-  const noteList = document.getElementById('noteList');
+  // Load Notes
+  const noteRes = await fetch(scriptURL + '?type=note');
+  const allNotes = await noteRes.json();
+  const myNotes = allNotes.filter(n => n.user === currentUser);
+  noteList.innerHTML = '';
 
-  function renderNotes(){
-    noteList.innerHTML='';
-    const myNotes = notes.filter(n=>n.user===currentUser);
-    if(myNotes.length===0){
-      noteList.innerHTML='<p>No notes to delete.</p>';
-      return;
-    }
-    myNotes.forEach((note,idx)=>{
-      const div=document.createElement('div');
-      div.className='item';
-      div.innerHTML=`
+  if (myNotes.length === 0) {
+    noteList.innerHTML = '<p>No notes to delete.</p>';
+  } else {
+    myNotes.reverse().forEach(note => {
+      const div = document.createElement('div');
+      div.className = 'item';
+      div.innerHTML = `
         <h3>${note.date}</h3>
-        <p>${note.mood? note.mood+' ' : ''}${note.content}</p>
+        <p>${note.note}</p>
         <button class="delete-btn">Delete</button>
       `;
-      div.querySelector('.delete-btn').onclick=()=>{
-        if(confirm('Delete this note?')){
-          // find real index in global notes array
-          const realIndex = notes.findIndex(n=>n.date===note.date && n.user===note.user && n.content===note.content);
-          if(realIndex>-1) notes.splice(realIndex,1);
-          localStorage.setItem('notes',JSON.stringify(notes));
-          renderNotes();
+      div.querySelector('.delete-btn').onclick = async () => {
+        if (confirm('Delete this note?')) {
+          await fetch(scriptURL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'delete',
+              type: 'note',
+              user: currentUser,
+              date: note.date
+            })
+          });
+          div.remove();
         }
       };
       noteList.appendChild(div);
     });
   }
-  renderNotes();
 })();
 </script>
 </body>
