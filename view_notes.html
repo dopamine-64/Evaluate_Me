@@ -28,6 +28,7 @@
       width: 90%;
       margin-bottom: 1.2rem;
       backdrop-filter: blur(5px);
+      word-break: break-word;
     }
 
     .note-header {
@@ -76,24 +77,29 @@
 
     const notesContainer = document.getElementById('notesContainer');
 
-    fetch("https://script.google.com/macros/s/AKfycbwxo6a7LGDSOjyVrNhWbckIA35NOrf0Jdk6oJJaD_2COrTQi7z_YzeL7_NGUwOs4Exv/exec?type=note")
+    // Updated script URL - replace with your current script URL if needed
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz2TCdaE9EsuSTHN-XggZu1u-M4ZT78OS5cgQDQn_xbJ0upVHtXiXC6gbcqiF8PIVmg/exec?type=note";
+
+    fetch("https://script.google.com/macros/s/AKfycbz2TCdaE9EsuSTHN-XggZu1u-M4ZT78OS5cgQDQn_xbJ0upVHtXiXC6gbcqiF8PIVmg/exec?type=note")
       .then(res => res.json())
       .then(data => {
-        if (data.length === 0) {
+        if (!Array.isArray(data) || data.length === 0) {
           notesContainer.innerHTML = "<p>No notes yet. Be the first to write one!</p>";
           return;
         }
 
-        // Newest first
+        notesContainer.innerHTML = ""; // Clear loading text
+
+        // Show newest first
         data.reverse().forEach(note => {
           const div = document.createElement('div');
           div.className = 'note';
           div.innerHTML = `
             <div class="note-header">
-              <span>${note.user}</span>
-              <span>${note.date}</span>
+              <span>${escapeHtml(note.user)}</span>
+              <span>${escapeHtml(note.date)}</span>
             </div>
-            <p>${note.note}</p>
+            <p>${escapeHtml(note.note)}</p>
           `;
           notesContainer.appendChild(div);
         });
@@ -102,6 +108,16 @@
         console.error("Error loading notes:", err);
         notesContainer.innerHTML = "<p>Error loading notes. Please try again later.</p>";
       });
+
+    // Simple function to escape HTML special chars to prevent injection
+    function escapeHtml(text) {
+      return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
   </script>
 
 </body>
