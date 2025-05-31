@@ -59,6 +59,7 @@
       cursor: pointer;
       font-size: 1rem;
       font-weight: bold;
+      transition: background 0.3s ease;
     }
     .delete-btn:hover {
       background: #ff1744;
@@ -72,6 +73,10 @@
       border-radius: 8px;
       font-weight: bold;
       cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    .back:hover {
+      background: #e6c200;
     }
   </style>
 </head>
@@ -92,94 +97,114 @@
   <button class="back" onclick="window.location.href='dashboard.html'">Back to Dashboard</button>
 
 <script>
-const scriptURL = "https://script.google.com/macros/s/AKfycbwxo6a7LGDSOjyVrNhWbckIA35NOrf0Jdk6oJJaD_2COrTQi7z_YzeL7_NGUwOs4Exv/exec";
+  const scriptURL = "https://script.google.com/macros/s/AKfycbwxo6a7LGDSOjyVrNhWbckIA35NOrf0Jdk6oJJaD_2COrTQi7z_YzeL7_NGUwOs4Exv/exec";
 
-(async function() {
-  const currentUser = localStorage.getItem('currentUser');
-  if (!currentUser) {
-    window.location.href = 'index.html';
-    return;
-  }
+  (async function() {
+    const currentUser = localStorage.getItem('currentUser');
+    if (!currentUser) {
+      window.location.href = 'index.html';
+      return;
+    }
 
-  const evalList = document.getElementById('evalList');
-  const noteList = document.getElementById('noteList');
+    const evalList = document.getElementById('evalList');
+    const noteList = document.getElementById('noteList');
 
-  // Load Evaluations
-  const evalRes = await fetch(scriptURL + '?type=evaluation');
-  const allEvaluations = await evalRes.json();
-  const myEvals = allEvaluations.filter(ev => ev.user === currentUser);
-  evalList.innerHTML = '';
+    try {
+      // Load Evaluations
+      const evalRes = await fetch('https://script.google.com/macros/s/AKfycbz2TCdaE9EsuSTHN-XggZu1u-M4ZT78OS5cgQDQn_xbJ0upVHtXiXC6gbcqiF8PIVmg/exec?type=evaluation');
+      if (!evalRes.ok) throw new Error('Failed to load evaluations');
+      const allEvaluations = await evalRes.json();
+      const myEvals = allEvaluations.filter(ev => ev.user === currentUser);
+      evalList.innerHTML = '';
 
-  if (myEvals.length === 0) {
-    evalList.innerHTML = '<p>No evaluations to delete.</p>';
-  } else {
-    myEvals.reverse().forEach(ev => {
-      const div = document.createElement('div');
-      div.className = 'item';
-      div.innerHTML = `
-        <h3>Date: ${ev.date}</h3>
-        <p><strong>Trust:</strong> ${ev.trust} |
-           <strong>Comm:</strong> ${ev.communication} |
-           <strong>Conn:</strong> ${ev.connection} |
-           <strong>Intimacy:</strong> ${ev.intimacy} |
-           <strong>Funny:</strong> ${ev.funny}</p>
-        <button class="delete-btn">Delete</button>
-      `;
-      div.querySelector('.delete-btn').onclick = async () => {
-        if (confirm('Delete this evaluation?')) {
-          await fetch(scriptURL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              action: 'delete',
-              type: 'evaluation',
-              user: currentUser,
-              date: ev.date
-            })
-          });
-          div.remove();
-        }
-      };
-      evalList.appendChild(div);
-    });
-  }
+      if (myEvals.length === 0) {
+        evalList.innerHTML = '<p>No evaluations to delete.</p>';
+      } else {
+        myEvals.reverse().forEach(ev => {
+          const div = document.createElement('div');
+          div.className = 'item';
+          div.innerHTML = `
+            <h3>Date: ${ev.date}</h3>
+            <p><strong>Trust:</strong> ${ev.trust} |
+               <strong>Comm:</strong> ${ev.communication} |
+               <strong>Conn:</strong> ${ev.connection} |
+               <strong>Intimacy:</strong> ${ev.intimacy} |
+               <strong>Funny:</strong> ${ev.funny}</p>
+            <button class="delete-btn">Delete</button>
+          `;
+          div.querySelector('.delete-btn').onclick = async () => {
+            if (confirm('Delete this evaluation?')) {
+              try {
+                const deleteRes = await fetch('https://script.google.com/macros/s/AKfycbz2TCdaE9EsuSTHN-XggZu1u-M4ZT78OS5cgQDQn_xbJ0upVHtXiXC6gbcqiF8PIVmg/exec?type=evaluation', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    action: 'delete',
+                    type: 'evaluation',
+                    user: currentUser,
+                    date: ev.date
+                  })
+                });
+                if (!deleteRes.ok) throw new Error('Failed to delete');
+                div.remove();
+              } catch (error) {
+                alert('Error deleting evaluation. Please try again.');
+                console.error(error);
+              }
+            }
+          };
+          evalList.appendChild(div);
+        });
+      }
 
-  // Load Notes
-  const noteRes = await fetch(scriptURL + '?type=note');
-  const allNotes = await noteRes.json();
-  const myNotes = allNotes.filter(n => n.user === currentUser);
-  noteList.innerHTML = '';
+      // Load Notes
+      const noteRes = await fetch('https://script.google.com/macros/s/AKfycbz2TCdaE9EsuSTHN-XggZu1u-M4ZT78OS5cgQDQn_xbJ0upVHtXiXC6gbcqiF8PIVmg/exec?type=note');
+      if (!noteRes.ok) throw new Error('Failed to load notes');
+      const allNotes = await noteRes.json();
+      const myNotes = allNotes.filter(n => n.user === currentUser);
+      noteList.innerHTML = '';
 
-  if (myNotes.length === 0) {
-    noteList.innerHTML = '<p>No notes to delete.</p>';
-  } else {
-    myNotes.reverse().forEach(note => {
-      const div = document.createElement('div');
-      div.className = 'item';
-      div.innerHTML = `
-        <h3>${note.date}</h3>
-        <p>${note.note}</p>
-        <button class="delete-btn">Delete</button>
-      `;
-      div.querySelector('.delete-btn').onclick = async () => {
-        if (confirm('Delete this note?')) {
-          await fetch(scriptURL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              action: 'delete',
-              type: 'note',
-              user: currentUser,
-              date: note.date
-            })
-          });
-          div.remove();
-        }
-      };
-      noteList.appendChild(div);
-    });
-  }
-})();
+      if (myNotes.length === 0) {
+        noteList.innerHTML = '<p>No notes to delete.</p>';
+      } else {
+        myNotes.reverse().forEach(note => {
+          const div = document.createElement('div');
+          div.className = 'item';
+          div.innerHTML = `
+            <h3>${note.date}</h3>
+            <p>${note.note}</p>
+            <button class="delete-btn">Delete</button>
+          `;
+          div.querySelector('.delete-btn').onclick = async () => {
+            if (confirm('Delete this note?')) {
+              try {
+                const deleteRes = await fetch("https://script.google.com/macros/s/AKfycbz2TCdaE9EsuSTHN-XggZu1u-M4ZT78OS5cgQDQn_xbJ0upVHtXiXC6gbcqiF8PIVmg/exec", {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    action: 'delete',
+                    type: 'note',
+                    user: currentUser,
+                    date: note.date
+                  })
+                });
+                if (!deleteRes.ok) throw new Error('Failed to delete');
+                div.remove();
+              } catch (error) {
+                alert('Error deleting note. Please try again.');
+                console.error(error);
+              }
+            }
+          };
+          noteList.appendChild(div);
+        });
+      }
+    } catch (error) {
+      evalList.innerHTML = '<p>Error loading evaluations. Please try again later.</p>';
+      noteList.innerHTML = '<p>Error loading notes. Please try again later.</p>';
+      console.error('Loading error:', error);
+    }
+  })();
 </script>
 </body>
 </html>
