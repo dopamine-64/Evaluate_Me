@@ -11,6 +11,7 @@
       color: white;
       font-family: 'Segoe UI', sans-serif;
       padding: 2rem;
+      margin: 0;
     }
     h1 {
       text-align: center;
@@ -18,9 +19,10 @@
     }
     .evaluation {
       background: rgba(255, 255, 255, 0.05);
-      padding: 1rem;
+      padding: 1rem 2rem;
       margin-bottom: 2rem;
       border-radius: 10px;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
     }
     .chart-container {
       width: 100%;
@@ -31,11 +33,13 @@
       margin-top: 1rem;
     }
     .open-ended p {
-      margin: 0.4rem 0;
+      margin: 0.6rem 0;
+      line-height: 1.5;
     }
     .date {
       font-weight: bold;
       color: #ffd700;
+      margin-bottom: 1rem;
     }
     .top-left-button {
       position: absolute;
@@ -53,6 +57,14 @@
     .top-left-button:hover {
       background-color: #e0a800;
     }
+    @media (max-width: 700px) {
+      .chart-container {
+        max-width: 100%;
+      }
+      .evaluation {
+        padding: 1rem;
+      }
+    }
   </style>
 </head>
 <body>
@@ -61,7 +73,7 @@
   <div id="evaluationsContainer"></div>
 
   <script>
-    const GOOGLE_SHEET_WEBAPP_URL = 'https://script.google.com/macros/s/PASTE_YOUR_DEPLOYED_URL_HERE/exec';
+    const GOOGLE_SHEET_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbz2TCdaE9EsuSTHN-XggZu1u-M4ZT78OS5cgQDQn_xbJ0upVHtXiXC6gbcqiF8PIVmg/exec';
 
     const openEndedQuestions = [
       'Recent best nicknames from your partner?',
@@ -83,12 +95,12 @@
 
     async function loadEvaluations() {
       try {
-        const res = await fetch("https://script.google.com/macros/s/AKfycbwxo6a7LGDSOjyVrNhWbckIA35NOrf0Jdk6oJJaD_2COrTQi7z_YzeL7_NGUwOs4Exv/exec");
+        const res = await fetch("https://script.google.com/macros/s/AKfycbz2TCdaE9EsuSTHN-XggZu1u-M4ZT78OS5cgQDQn_xbJ0upVHtXiXC6gbcqiF8PIVmg/exec");
         const evaluations = await res.json();
 
         const container = document.getElementById('evaluationsContainer');
 
-        if (evaluations.length === 0) {
+        if (!evaluations.length) {
           const msg = document.createElement('p');
           msg.textContent = "No evaluations found.";
           msg.style.textAlign = "center";
@@ -106,71 +118,77 @@
           // Date
           const date = document.createElement('p');
           date.className = 'date';
-          date.textContent = `Evaluation Date: ${evalData.date}`;
+          date.textContent = `Evaluation Date: ${evalData.date || "Unknown"}`;
           wrapper.appendChild(date);
 
           // Chart canvas
           const chartCanvas = document.createElement('canvas');
           chartCanvas.id = `chart-${index}`;
-          chartCanvas.width = 600;
-          chartCanvas.height = 400;
+          chartCanvas.className = 'chart-container';
           wrapper.appendChild(chartCanvas);
 
-          // Chart data
           const scaled = evalData.scaled || {};
           const labels = ['Trust', 'Communication', 'Emotional Connection', 'Intimacy', 'Funny & Dorky'];
           const values = [
-            scaled.trust || 0,
-            scaled.communication || 0,
-            scaled.connection || 0,
-            scaled.intimacy || 0,
-            scaled.funny || 0
+            parseInt(scaled.trust || 0),
+            parseInt(scaled.communication || 0),
+            parseInt(scaled.connection || 0),
+            parseInt(scaled.intimacy || 0),
+            parseInt(scaled.funny || 0)
           ];
 
-          // Draw chart
-          setTimeout(() => {
-            new Chart(chartCanvas, {
-              type: 'radar',
-              data: {
-                labels,
-                datasets: [{
-                  label: 'Relationship Evaluation',
-                  data: values,
-                  backgroundColor: 'rgba(255, 206, 86, 0.3)',
-                  borderColor: 'rgba(255, 206, 86, 1)',
-                  pointBackgroundColor: 'white',
-                  borderWidth: 2
-                }]
-              },
-              options: {
-                scales: {
-                  r: {
-                    min: 0,
-                    max: 10,
-                    ticks: { stepSize: 1 },
-                    pointLabels: {
-                      color: 'white',
-                      font: { size: 14 }
-                    },
-                    grid: {
-                      color: 'rgba(255,255,255,0.2)'
+          // Draw radar chart
+          new Chart(chartCanvas, {
+            type: 'radar',
+            data: {
+              labels,
+              datasets: [{
+                label: 'Relationship Evaluation',
+                data: values,
+                backgroundColor: 'rgba(255, 206, 86, 0.3)',
+                borderColor: 'rgba(255, 206, 86, 1)',
+                pointBackgroundColor: 'white',
+                borderWidth: 2
+              }]
+            },
+            options: {
+              responsive: true,
+              scales: {
+                r: {
+                  min: 0,
+                  max: 10,
+                  ticks: {
+                    stepSize: 1,
+                    color: 'white'
+                  },
+                  pointLabels: {
+                    color: 'white',
+                    font: {
+                      size: 14
                     }
+                  },
+                  grid: {
+                    color: 'rgba(255,255,255,0.2)'
                   }
-                },
-                plugins: {
-                  legend: { labels: { color: 'white' } }
+                }
+              },
+              plugins: {
+                legend: {
+                  labels: {
+                    color: 'white'
+                  }
                 }
               }
-            });
-          }, 100);
+            }
+          });
 
-          // Open-ended answers
+          // Open-ended questions
           const openEnded = document.createElement('div');
           openEnded.className = 'open-ended';
 
           openEndedQuestions.forEach((question, i) => {
             const qNum = i + 1;
-            const answer = evalData.openEnded[`q${qNum}`] || "N/A";
+            const answer = (evalData.openEnded && evalData.openEnded[`q${qNum}`]) || "N/A";
             const p = document.createElement('p');
             p.innerHTML = `<strong>Q${qNum}: ${question}</strong><br>${answer}`;
             openEnded.appendChild(p);
