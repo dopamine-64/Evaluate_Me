@@ -5,43 +5,66 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Relationship Evaluation</title>
   <style>
-    body{
-      background:linear-gradient(to right,#6a4891,#c42c8a);
-      color:#fff;
-      font-family:'Segoe UI',sans-serif;
-      margin:0;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      min-height:100vh;
+    body {
+      background: linear-gradient(to right, #6a4891, #c42c8a);
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
     }
-    .container{
-      width:90%;max-width:750px;
-      background:rgba(255,255,255,.05);
-      padding:2rem;border-radius:10px;
-      box-shadow:0 0 15px rgba(0,0,0,.3);
+    .container {
+      width: 90%;
+      max-width: 750px;
+      background: rgba(255,255,255,.05);
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,.3);
     }
-    h1{text-align:center;margin-bottom:2rem}
-    .question-box{
-      background:rgba(255,255,255,.1);
-      padding:1rem;margin-bottom:1.5rem;border-radius:8px;
+    h1 { text-align: center; margin-bottom: 2rem }
+    .question-box {
+      background: rgba(255,255,255,.1);
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      border-radius: 8px;
     }
-    .question-box label{font-weight:bold;display:block;margin-bottom:.5rem}
+    .question-box label { font-weight: bold; display: block; margin-bottom: .5rem }
     .question-box input,
-    .question-box textarea{
-      width:97%;padding:.5rem;border:none;border-radius:5px;font-size:1rem
+    .question-box textarea {
+      width: 97%;
+      padding: .5rem;
+      border: none;
+      border-radius: 5px;
+      font-size: 1rem;
     }
-    textarea{min-height:80px;resize:vertical}
-    button{
-      padding:.75rem 2rem;border:none;border-radius:5px;font-weight:bold;
-      cursor:pointer;font-size:1rem;transition:background .3s;
+    textarea { min-height: 80px; resize: vertical }
+    button {
+      padding: .75rem 2rem;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background .3s;
     }
-    #submitBtn{background:#28b42d;color:#fff;display:block;margin:2rem auto 0}
-    #submitBtn:hover{background:#2fa033}
-    .back{background:#fff176;color:#333;margin:1rem auto 0;display:block}
-    .back:hover{background:#ffca28}
+    #submitBtn {
+      background: #28b42d;
+      color: #fff;
+      display: block;
+      margin: 2rem auto 0;
+    }
+    #submitBtn:hover { background: #2fa033 }
+    .back {
+      background: #fff176;
+      color: #333;
+      margin: 1rem auto 0;
+      display: block;
+    }
+    .back:hover { background: #ffca28 }
     input::-webkit-inner-spin-button,
-    input::-webkit-outer-spin-button{ -webkit-appearance:none;margin:0 }
+    input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0 }
   </style>
 </head>
 <body>
@@ -82,36 +105,42 @@
   </div>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwxo6a7LGDSOjyVrNhWbckIA35NOrf0Jdk6oJJaD_2COrTQi7z_YzeL7_NGUwOs4Exv/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz2TCdaE9EsuSTHN-XggZu1u-M4ZT78OS5cgQDQn_xbJ0upVHtXiXC6gbcqiF8PIVmg/exec";
 
     document.getElementById('evaluationForm').addEventListener('submit', async (e) => {
       e.preventDefault();
 
       const currentUser = localStorage.getItem('currentUser') || 'guest';
       const payload = {
+        action: "add",
+        type: "evaluation",
         user: currentUser,
         date: new Date().toLocaleString(),
-        scaled: {
-          trust: +document.getElementById('trust').value,
-          communication: +document.getElementById('communication').value,
-          connection: +document.getElementById('connection').value,
-          intimacy: +document.getElementById('intimacy').value,
-          funny: +document.getElementById('funny').value
-        },
-        openEnded: {}
+        trust: +document.getElementById('trust').value,
+        communication: +document.getElementById('communication').value,
+        connection: +document.getElementById('connection').value,
+        intimacy: +document.getElementById('intimacy').value,
+        funny: +document.getElementById('funny').value,
+        answers: []
       };
 
       for (let i = 1; i <= 15; i++) {
-        payload.openEnded[`q${i}`] = document.getElementById(`q${i}`).value.trim();
+        payload.answers.push(document.getElementById(`q${i}`).value.trim());
       }
 
       try {
-        await fetch(`${SCRIPT_URL}?type=evaluation`, {
+        const res = await fetch("https://script.google.com/macros/s/AKfycbz2TCdaE9EsuSTHN-XggZu1u-M4ZT78OS5cgQDQn_xbJ0upVHtXiXC6gbcqiF8PIVmg/exec", {
           method: "POST",
           body: JSON.stringify(payload)
         });
-        alert("Evaluation submitted and synced!");
-        e.target.reset();
+
+        const text = await res.text();
+        if (text === "Added") {
+          alert("Evaluation submitted successfully!");
+          e.target.reset();
+        } else {
+          alert("Unexpected response: " + text);
+        }
       } catch (err) {
         alert("Error submitting: " + err);
       }
