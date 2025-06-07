@@ -1,0 +1,94 @@
+function doPost(e) {
+  try {
+    const sheetName = e.parameter.type === 'note' ? 'Notes' : 'Evaluations';
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+    const data = JSON.parse(e.postData.contents);
+
+    if (sheetName === 'Evaluations') {
+      const row = [
+        data.user,
+        data.date,
+        data.scaled?.trust || 0,
+        data.scaled?.communication || 0,
+        data.scaled?.connection || 0,
+        data.scaled?.intimacy || 0,
+        data.scaled?.funny || 0,
+      ];
+
+      for (let i = 1; i <= 15; i++) {
+        row.push(data.openEnded?.[`q${i}`] || '');
+      }
+
+      sheet.appendRow(row);
+
+    } else if (sheetName === 'Notes') {
+      sheet.appendRow([
+        data.user,
+        data.date,
+        data.note || ''
+      ]);
+    }
+
+    return ContentService.createTextOutput("Success");
+  } catch (error) {
+    return ContentService.createTextOutput("Error: " + error.message);
+  }
+}
+
+
+function doGet(e) {
+  try {
+    const type = e.parameter.type;
+    if (!type || (type !== 'evaluation' && type !== 'note')) {
+      throw new Error("Invalid or missing 'type' parameter.");
+    }
+
+    const sheetName = type === 'evaluation' ? 'Evaluations' : 'Notes';
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+    if (!sheet) throw new Error(`Sheet "${sheetName}" not found.`);
+
+    const values = sheet.getDataRange().getValues();
+    if (values.length < 2) return ContentService.createTextOutput(JSON.stringify([])).setMimeType(ContentService.MimeType.JSON);
+
+    const headers = values[0];
+    const data = values.slice(1).map(row => {
+      const item = {};
+      headers.forEach((key, i) => {
+        item[key] = row[i];
+      });
+      return item;
+    });
+
+    return ContentService.createTextOutput(JSON.stringify(data))
+      .setMimeType(ContentService.MimeType.JSON);
+
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({ error: error.message }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+
+
+
+function doDelete(e) {
+  try {
+    const sheetName = e.parameter.type === 'note' ? 'Notes' : 'Evaluations';
+    const targetDate = e.parameter.date;
+    const targetUser = e.parameter.user;
+
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+    const data = sheet.getDataRange().getValues();
+
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] == targetUser && data[i][1] == targetDate) {
+        sheet.deleteRow(i + 1); // +1 because header row is row 1
+        return ContentService.createTextOutput("Deleted");
+      }
+    }
+
+    return ContentService.createTextOutput("Not found");
+  } catch (error) {
+    return ContentService.createTextOutput("Error: " + error.message);
+  }
+}
