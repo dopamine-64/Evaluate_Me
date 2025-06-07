@@ -5,44 +5,91 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Add a Note</title>
   <style>
-    body{
-      margin:0;
-      font-family:'Segoe UI',sans-serif;
-      background:linear-gradient(to right,#8d169c,#0f61ad);
-      color:#fff;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      padding:2rem;
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #8d169c, #0f61ad);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
     }
-    h2{margin-bottom:1rem}
-    textarea{
-      width:90%;max-width:500px;height:200px;
-      border-radius:10px;padding:1rem;font-size:1rem;
-      resize:none;border:none;outline:none;
-      background:rgba(255,255,255,.1);color:#fff;
+
+    h2 {
+      margin-bottom: 1rem;
     }
-    textarea::placeholder{color:#ccc}
-    .emojis{margin:1rem 0}
-    .emoji{
-      font-size:1.5rem;margin:0 .3rem;cursor:pointer;
-      transition:transform .2s;
+
+    textarea {
+      width: 90%;
+      max-width: 500px;
+      height: 200px;
+      border-radius: 10px;
+      padding: 1rem;
+      font-size: 1rem;
+      resize: none;
+      border: none;
+      outline: none;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
     }
-    .emoji:hover{transform:scale(1.3)}
-    .emoji.selected{
-      border:2px solid #fff;border-radius:50%;padding:.2rem;
+
+    textarea::placeholder {
+      color: #ccc;
     }
-    button{
-      margin-top:1.2rem;padding:.7rem 2rem;border:none;
-      border-radius:10px;font-weight:bold;cursor:pointer;
-      transition:background .3s;
+
+    .emojis {
+      margin: 1rem 0;
     }
-    .save{background:#ffde59;color:#222}
-    .save:hover{background:#ffc107}
-    .back{
-      margin-top:2rem;background:#fff176;color:#222;
+
+    .emoji {
+      font-size: 1.5rem;
+      margin: 0 0.3rem;
+      cursor: pointer;
+      transition: transform 0.2s;
     }
-    .back:hover{background:#ffca28}
+
+    .emoji:hover {
+      transform: scale(1.3);
+    }
+
+    .emoji.selected {
+      border: 2px solid #fff;
+      border-radius: 50%;
+      padding: 0.2rem;
+    }
+
+    button {
+      margin-top: 1.2rem;
+      padding: 0.7rem 2rem;
+      border: none;
+      border-radius: 10px;
+      background-color: #ffde59;
+      color: #222;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #ffc107;
+    }
+
+    .back {
+      margin-top: 2rem;
+      padding: 0.7rem 2rem;
+      border: none;
+      border-radius: 10px;
+      background-color: #fff176;
+      color: #222;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .back:hover {
+      background-color: #ffca28;
+    }
   </style>
 </head>
 <body>
@@ -59,58 +106,45 @@
     <span class="emoji" onclick="selectEmoji(this)">😴</span>
   </div>
 
-  <button class="save" onclick="saveNote()">Save Note</button>
+  <button onclick="saveNote()">Save Note</button>
 
   <button class="back" onclick="window.location.href='dashboard.html'">Back to Dashboard</button>
 
   <script>
-    // ---------- CONFIG ----------
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz2TCdaE9EsuSTHN-XggZu1u-M4ZT78OS5cgQDQn_xbJ0upVHtXiXC6gbcqiF8PIVmg/exec?type=note";
-    // ----------------------------
-
     const currentUser = localStorage.getItem('currentUser');
-    if (!currentUser) window.location.href = 'index.html';
+    if (!currentUser) {
+      window.location.href = 'index.html';
+    }
 
     let selectedMood = "";
 
-    function selectEmoji(el){
-      document.querySelectorAll('.emoji').forEach(e=>e.classList.remove('selected'));
+    function selectEmoji(el) {
+      document.querySelectorAll('.emoji').forEach(e => e.classList.remove('selected'));
       el.classList.add('selected');
       selectedMood = el.innerText;
     }
 
-    async function saveNote(){
+    function saveNote() {
       const noteText = document.getElementById('noteContent').value.trim();
-      if(!noteText){
+      if (!noteText) {
         alert('Please write something!');
         return;
       }
 
-      const payload = {
-        action: "add",
-        type  : "note",
-        user  : currentUser,
-        date  : new Date().toLocaleString(),
-        note  : (selectedMood || "📝") + " " + noteText
+      const notes = JSON.parse(localStorage.getItem('notes')) || [];
+
+      const newNote = {
+        user: currentUser,
+        content: noteText,
+        mood: selectedMood || "📝",
+        date: new Date().toLocaleString()
       };
 
-      try{
-        const res  = await fetch("https://script.google.com/macros/s/AKfycbz2TCdaE9EsuSTHN-XggZu1u-M4ZT78OS5cgQDQn_xbJ0upVHtXiXC6gbcqiF8PIVmg/exec?type=note", {
-          method : "POST",
-          headers: { "Content-Type":"application/json" },
-          body   : JSON.stringify(payload)
-        });
-        const txt = await res.text();
-        if(txt.trim()==="Added"){
-          alert("Note saved!");
-          window.location.href = "dashboard.html";
-        }else{
-          alert("Server responded: "+txt);
-        }
-      }catch(err){
-        console.error(err);
-        alert("Error saving note. Check your connection and try again.");
-      }
+      notes.push(newNote);
+      localStorage.setItem('notes', JSON.stringify(notes));
+
+      alert('Note saved!');
+      window.location.href = 'dashboard.html';
     }
   </script>
 
