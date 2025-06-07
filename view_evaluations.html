@@ -26,8 +26,9 @@
     }
     .chart-container {
       width: 100%;
-      max-width: 600px;
-      margin: 1rem auto;
+      max-width: 800px;
+      height: 600px;
+      margin: 2rem auto;
     }
     .open-ended {
       margin-top: 1rem;
@@ -39,6 +40,11 @@
     .date {
       font-weight: bold;
       color: #ffd700;
+      margin-bottom: 0.5rem;
+    }
+    .user {
+      font-style: italic;
+      color: #87cefa;
       margin-bottom: 1rem;
     }
     .top-left-button {
@@ -60,6 +66,7 @@
     @media (max-width: 700px) {
       .chart-container {
         max-width: 100%;
+        height: auto;
       }
       .evaluation {
         padding: 1rem;
@@ -73,8 +80,6 @@
   <div id="evaluationsContainer"></div>
 
   <script>
-    const GOOGLE_SHEET_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbz2TCdaE9EsuSTHN-XggZu1u-M4ZT78OS5cgQDQn_xbJ0upVHtXiXC6gbcqiF8PIVmg/exec';
-
     const openEndedQuestions = [
       'Recent best nicknames from your partner?',
       'What do you want to improve in your partner?',
@@ -95,8 +100,8 @@
 
     async function loadEvaluations() {
       try {
-        const res = await fetch("https://script.google.com/macros/s/AKfycbz2TCdaE9EsuSTHN-XggZu1u-M4ZT78OS5cgQDQn_xbJ0upVHtXiXC6gbcqiF8PIVmg/exec");
-        const evaluations = await res.json();
+        const res = await fetch("https://script.google.com/macros/s/AKfycbz2TCdaE9EsuSTHN-XggZu1u-M4ZT78OS5cgQDQn_xbJ0upVHtXiXC6gbcqiF8PIVmg/exec?type=evaluation");
+        let evaluations = await res.json();
 
         const container = document.getElementById('evaluationsContainer');
 
@@ -111,33 +116,43 @@
           return;
         }
 
+        evaluations.sort((a, b) => new Date(b.date) - new Date(a.date));
+
         evaluations.forEach((evalData, index) => {
           const wrapper = document.createElement('div');
           wrapper.className = 'evaluation';
 
-          // Date
+          const user = document.createElement('p');
+          user.className = 'user';
+          user.textContent = `Posted by: ${evalData.user || "Unknown"}`;
+          wrapper.appendChild(user);
+
+          const rawDate = evalData.date || "";
+          const justDate = rawDate.split(',')[0]; 
           const date = document.createElement('p');
           date.className = 'date';
-          date.textContent = `Evaluation Date: ${evalData.date || "Unknown"}`;
+          date.textContent = `Date: ${justDate || "Unknown"}`;
           wrapper.appendChild(date);
 
-          // Chart canvas
+          // Chart container
+          const chartContainer = document.createElement('div');
+          chartContainer.className = 'chart-container';
+
           const chartCanvas = document.createElement('canvas');
           chartCanvas.id = `chart-${index}`;
-          chartCanvas.className = 'chart-container';
-          wrapper.appendChild(chartCanvas);
+          chartContainer.appendChild(chartCanvas);
+          wrapper.appendChild(chartContainer);
 
-          const scaled = evalData.scaled || {};
+          // Radar chart values
           const labels = ['Trust', 'Communication', 'Emotional Connection', 'Intimacy', 'Funny & Dorky'];
           const values = [
-            parseInt(scaled.trust || 0),
-            parseInt(scaled.communication || 0),
-            parseInt(scaled.connection || 0),
-            parseInt(scaled.intimacy || 0),
-            parseInt(scaled.funny || 0)
+            parseInt(evalData.trust || 0),
+            parseInt(evalData.communication || 0),
+            parseInt(evalData.connection || 0),
+            parseInt(evalData.intimacy || 0),
+            parseInt(evalData.funny || 0)
           ];
 
-          // Draw radar chart
           new Chart(chartCanvas, {
             type: 'radar',
             data: {
@@ -153,18 +168,22 @@
             },
             options: {
               responsive: true,
+              maintainAspectRatio: false,
               scales: {
                 r: {
                   min: 0,
                   max: 10,
                   ticks: {
                     stepSize: 1,
-                    color: 'white'
+                    color: 'black',
+                    font: {
+                      size: 18
+                    }
                   },
                   pointLabels: {
                     color: 'white',
                     font: {
-                      size: 14
+                      size: 18
                     }
                   },
                   grid: {
@@ -175,20 +194,23 @@
               plugins: {
                 legend: {
                   labels: {
-                    color: 'white'
+                    color: 'white',
+                    font: {
+                      size: 14
+                    }
                   }
                 }
               }
             }
           });
 
-          // Open-ended questions
+          // Open-ended responses
           const openEnded = document.createElement('div');
           openEnded.className = 'open-ended';
 
           openEndedQuestions.forEach((question, i) => {
             const qNum = i + 1;
-            const answer = (evalData.openEnded && evalData.openEnded[`q${qNum}`]) || "N/A";
+            const answer = evalData[`q${qNum}`] || "N/A";
             const p = document.createElement('p');
             p.innerHTML = `<strong>Q${qNum}: ${question}</strong><br>${answer}`;
             openEnded.appendChild(p);
