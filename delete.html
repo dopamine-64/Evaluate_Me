@@ -1,210 +1,151 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Delete My Stuff</title>
+  <title>Delete Evaluations</title>
   <style>
     body {
       margin: 0;
-      padding: 0;
       font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to right, #0f2725, #20433e, #2c645b);
+      background: linear-gradient(to right, #f14c67, #db6295);
       color: #fff;
+      padding: 2rem;
       display: flex;
       flex-direction: column;
       align-items: center;
-      min-height: 100vh;
-      padding: 2rem;
     }
-    h1 {
+
+    h2 {
       margin-bottom: 1rem;
-      text-align: center;
-      color: #ffd700;
     }
-    .section {
-      width: 100%;
-      max-width: 800px;
-      background: rgba(255,255,255,0.06);
-      padding: 1.5rem;
+
+    .evaluation {
+      background: rgba(255, 255, 255, 0.1);
       border-radius: 12px;
-      margin-bottom: 2rem;
-      box-shadow: 0 0 15px rgba(0,0,0,0.4);
-    }
-    .item {
-      background: rgba(255,255,255,0.1);
-      padding: 1rem;
-      border-radius: 8px;
-      margin-bottom: 1rem;
+      padding: 1rem 1.5rem;
+      max-width: 600px;
+      width: 90%;
+      margin-bottom: 1.2rem;
+      backdrop-filter: blur(5px);
       position: relative;
     }
-    .item h3 {
-      margin: 0 0 .5rem;
-      font-size: 1rem;
-      color: #ffd700;
+
+    .evaluation-header {
+      display: flex;
+      justify-content: space-between;
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+      color: #ffd;
     }
-    .item p {
-      margin: .3rem 0;
+
+    .evaluation p {
+      margin: 0;
+      font-size: 1rem;
       white-space: pre-wrap;
     }
+
     .delete-btn {
       position: absolute;
-      top: 13px;
-      right: 13px;
-      background: #ff5252;
-      border: none;
-      color: #fff;
-      padding: .3rem .6rem;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 1rem;
-      font-weight: bold;
-      transition: background 0.3s ease;
-    }
-    .delete-btn:hover {
-      background: #ff1744;
-    }
-    .back {
-      margin-top: 1rem;
-      padding: .7rem 2rem;
-      background: #ffd700;
-      color: #000;
+      top: 10px;
+      right: 10px;
+      background-color: #ff5252;
+      color: white;
       border: none;
       border-radius: 8px;
+      padding: 0.4rem 0.8rem;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .delete-btn:hover {
+      background-color: #e53935;
+    }
+
+    .back {
+      margin-top: 2rem;
+      padding: 0.7rem 2rem;
+      border: none;
+      border-radius: 10px;
+      background-color: #fff176;
+      color: #333;
       font-weight: bold;
       cursor: pointer;
       transition: background 0.3s ease;
     }
+
     .back:hover {
-      background: #e6c200;
+      background-color: #ffca28;
     }
   </style>
 </head>
 <body>
 
-  <h1>My Posts</h1>
-
-  <div id="evalSection" class="section">
-    <h2>My Evaluations</h2>
-    <div id="evalList">Loading...</div>
-  </div>
-
-  <div id="noteSection" class="section">
-    <h2>My Notes</h2>
-    <div id="noteList">Loading...</div>
-  </div>
+  <h2>Delete Evaluations</h2>
+  <div id="evaluationsContainer">Loading...</div>
 
   <button class="back" onclick="window.location.href='dashboard.html'">Back to Dashboard</button>
 
-<script>
-  const scriptURL = "https://script.google.com/macros/s/AKfycbwxo6a7LGDSOjyVrNhWbckIA35NOrf0Jdk6oJJaD_2COrTQi7z_YzeL7_NGUwOs4Exv/exec";
-
-  (async function() {
+  <script>
     const currentUser = localStorage.getItem('currentUser');
     if (!currentUser) {
       window.location.href = 'index.html';
-      return;
     }
 
-    const evalList = document.getElementById('evalList');
-    const noteList = document.getElementById('noteList');
+    const container = document.getElementById('evaluationsContainer');
+    const API_URL = "https://script.google.com/macros/s/AKfycbz2TCdaE9EsuSTHN-XggZu1u-M4ZT78OS5cgQDQn_xbJ0upVHtXiXC6gbcqiF8PIVmg/exec"
 
-    try {
-      // Load Evaluations
-      const evalRes = await fetch('https://script.google.com/macros/s/AKfycbz2TCdaE9EsuSTHN-XggZu1u-M4ZT78OS5cgQDQn_xbJ0upVHtXiXC6gbcqiF8PIVmg/exec?type=evaluation');
-      if (!evalRes.ok) throw new Error('Failed to load evaluations');
-      const allEvaluations = await evalRes.json();
-      const myEvals = allEvaluations.filter(ev => ev.user === currentUser);
-      evalList.innerHTML = '';
-
-      if (myEvals.length === 0) {
-        evalList.innerHTML = '<p>No evaluations to delete.</p>';
-      } else {
-        myEvals.reverse().forEach(ev => {
-          const div = document.createElement('div');
-          div.className = 'item';
-          div.innerHTML = `
-            <h3>Date: ${ev.date}</h3>
-            <p><strong>Trust:</strong> ${ev.trust} |
-               <strong>Comm:</strong> ${ev.communication} |
-               <strong>Conn:</strong> ${ev.connection} |
-               <strong>Intimacy:</strong> ${ev.intimacy} |
-               <strong>Funny:</strong> ${ev.funny}</p>
-            <button class="delete-btn">Delete</button>
-          `;
-          div.querySelector('.delete-btn').onclick = async () => {
-            if (confirm('Delete this evaluation?')) {
-              try {
-                const deleteRes = await fetch('https://script.google.com/macros/s/AKfycbz2TCdaE9EsuSTHN-XggZu1u-M4ZT78OS5cgQDQn_xbJ0upVHtXiXC6gbcqiF8PIVmg/exec?type=evaluation', {
+    // Fetch all evaluations and filter by currentUser
+    fetch(`${API_URL}?type=evaluation`)
+      .then(res => res.json())
+      .then(data => {
+        const evaluations = data.filter(e => e.User === currentUser);
+        if (evaluations.length === 0) {
+          container.innerHTML = "<p>No evaluations found to delete.</p>";
+        } else {
+          container.innerHTML = '';
+          evaluations.reverse().forEach(e => {
+            const div = document.createElement('div');
+            div.className = 'evaluation';
+            div.innerHTML = `
+              <div class="evaluation-header">
+                <span>${e.User}</span>
+                <span>${e.Date}</span>
+              </div>
+              <p>Trust: ${e.Trust} | Communication: ${e.Communication} | Connection: ${e.Connection} | Intimacy: ${e.Intimacy} | Funny: ${e.Funny}</p>
+              <button class="delete-btn">Delete</button>
+            `;
+            const btn = div.querySelector('.delete-btn');
+            btn.onclick = () => {
+              if (confirm(`Are you sure you want to delete the evaluation from ${e.Date}?`)) {
+                fetch(API_URL, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({
-                    action: 'delete',
                     type: 'evaluation',
-                    user: currentUser,
-                    date: ev.date
-                  })
-                });
-                if (!deleteRes.ok) throw new Error('Failed to delete');
-                div.remove();
-              } catch (error) {
-                alert('Error deleting evaluation. Please try again.');
-                console.error(error);
-              }
-            }
-          };
-          evalList.appendChild(div);
-        });
-      }
-
-      // Load Notes
-      const noteRes = await fetch('https://script.google.com/macros/s/AKfycbz2TCdaE9EsuSTHN-XggZu1u-M4ZT78OS5cgQDQn_xbJ0upVHtXiXC6gbcqiF8PIVmg/exec?type=note');
-      if (!noteRes.ok) throw new Error('Failed to load notes');
-      const allNotes = await noteRes.json();
-      const myNotes = allNotes.filter(n => n.user === currentUser);
-      noteList.innerHTML = '';
-
-      if (myNotes.length === 0) {
-        noteList.innerHTML = '<p>No notes to delete.</p>';
-      } else {
-        myNotes.reverse().forEach(note => {
-          const div = document.createElement('div');
-          div.className = 'item';
-          div.innerHTML = `
-            <h3>${note.date}</h3>
-            <p>${note.note}</p>
-            <button class="delete-btn">Delete</button>
-          `;
-          div.querySelector('.delete-btn').onclick = async () => {
-            if (confirm('Delete this note?')) {
-              try {
-                const deleteRes = await fetch("https://script.google.com/macros/s/AKfycbz2TCdaE9EsuSTHN-XggZu1u-M4ZT78OS5cgQDQn_xbJ0upVHtXiXC6gbcqiF8PIVmg/exec", {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
                     action: 'delete',
-                    type: 'note',
-                    user: currentUser,
-                    date: note.date
+                    user: e.User,
+                    date: e.Date
                   })
-                });
-                if (!deleteRes.ok) throw new Error('Failed to delete');
-                div.remove();
-              } catch (error) {
-                alert('Error deleting note. Please try again.');
-                console.error(error);
+                })
+                  .then(res => res.text())
+                  .then(msg => {
+                    alert(msg);
+                    div.remove();
+                  })
+                  .catch(err => {
+                    alert("Error deleting: " + err.message);
+                  });
               }
-            }
-          };
-          noteList.appendChild(div);
-        });
-      }
-    } catch (error) {
-      evalList.innerHTML = '<p>Error loading evaluations. Please try again later.</p>';
-      noteList.innerHTML = '<p>Error loading notes. Please try again later.</p>';
-      console.error('Loading error:', error);
-    }
-  })();
-</script>
+            };
+            container.appendChild(div);
+          });
+        }
+      })
+      .catch(err => {
+        container.innerHTML = `<p style="color: yellow;">Error loading evaluations: ${err.message}</p>`;
+      });
+  </script>
+
 </body>
 </html>
